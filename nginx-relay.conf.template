@@ -7,26 +7,29 @@ events {
 }
 
 stream {
+    # Re-resolve DNS every 30s so IP changes are picked up automatically
+    resolver 8.8.8.8 1.1.1.1 valid=30s ipv6=off;
+
     # RTMP relay (TCP)
-    upstream rtmp_backend {
-        server ${RELAY_TARGET_HOST}:1935;
+    map "" $rtmp_upstream {
+        default ${RELAY_TARGET_HOST}:1935;
     }
 
     server {
         listen 1935;
-        proxy_pass rtmp_backend;
+        proxy_pass $rtmp_upstream;
         proxy_timeout 300s;
         proxy_connect_timeout 10s;
     }
 
     # SRT relay (UDP)
-    upstream srt_backend {
-        server ${RELAY_TARGET_HOST}:8890;
+    map "" $srt_upstream {
+        default ${RELAY_TARGET_HOST}:8890;
     }
 
     server {
         listen 8890 udp;
-        proxy_pass srt_backend;
+        proxy_pass $srt_upstream;
         proxy_timeout 120s;
         proxy_requests 0;
         proxy_responses 0;
