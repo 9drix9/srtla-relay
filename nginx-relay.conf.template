@@ -1,0 +1,34 @@
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /tmp/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+stream {
+    # RTMP relay (TCP)
+    upstream rtmp_backend {
+        server ${RELAY_TARGET_HOST}:1935;
+    }
+
+    server {
+        listen 1935;
+        proxy_pass rtmp_backend;
+        proxy_timeout 300s;
+        proxy_connect_timeout 10s;
+    }
+
+    # SRT relay (UDP)
+    upstream srt_backend {
+        server ${RELAY_TARGET_HOST}:8890;
+    }
+
+    server {
+        listen 8890 udp;
+        proxy_pass srt_backend;
+        proxy_timeout 120s;
+        proxy_requests 0;
+        proxy_responses 0;
+    }
+}
