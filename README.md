@@ -47,6 +47,7 @@ Then configure your streaming app to connect to `srtla://relay-ip:5000`.
 | `RELAY_LISTEN_PORT` | No | `5000` | SRTLA listen port on this relay |
 | `RELAY_HEALTH_PORT` | No | `8080` | HTTP health check port (set to `0` to disable) |
 | `RELAY_DNS_CHECK_INTERVAL` | No | `30` | Seconds between DNS change checks |
+| `RELAY_KEEPALIVE_INTERVAL` | No | `300` | Seconds between upstream connection recycling (prevents stale SRT connections after idle periods) |
 
 ## How It Works
 
@@ -57,6 +58,7 @@ The relay runs `srtla_rec` which:
 
 The wrapper script (`start.sh`) adds:
 - **DNS monitoring**: Every 30s, resolves the target hostname. If the IP changed, restarts srtla_rec with the new IP. This prevents stale connections when your ingest server's IP changes.
+- **Keepalive recycling**: Every 5 minutes (configurable), recycles srtla_rec to refresh the upstream SRT connection. Prevents stale connections after long idle periods where the process is alive but can't forward data.
 - **Crash recovery**: If srtla_rec exits unexpectedly, it's restarted automatically.
 - **Health checks**: HTTP endpoint returns 200 OK for uptime monitoring.
 
